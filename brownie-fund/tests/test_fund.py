@@ -1,5 +1,5 @@
 import pytest
-from brownie import accounts, exceptions
+from brownie import accounts
 from scripts.helpers import get_account, is_localnet
 from scripts.deploy import deploy_fund_me
 
@@ -31,4 +31,3 @@ def test_only_owner_can_withdraw():
 
     with pytest.raises(ValueError):
         fund_me.withdraw({'from': bad_actor})
-

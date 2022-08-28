@@ -28,7 +28,7 @@ contract FundMe {
         _funders.push(msg.sender);
     } 
 
-    function getEntranceFee() public view returns (uint256) {
+    function getEntranceFee() public view returns(uint256) {
         // minimumUSD
         uint256 minimumUSD = 0.05 * 10**18;
         uint256 price = getPrice();
@@ -49,13 +49,13 @@ contract FundMe {
     function getPrice() public view returns(uint256){
         (,int256 answer,,,) = _priceFeed.latestRoundData();
          // ETH/USD rate in 18 digit 
-         return uint256(answer * 10000000000);
+         return uint256(answer * (10 ** 10));
     }
     
     // 1000000000
     function getConversionRate(uint256 ethAmount) public view returns (uint256){
         uint256 ethPrice = getPrice();
-        uint256 ethAmountInUsd = (ethPrice * ethAmount) / 1000000000000000000;
+        uint256 ethAmountInUsd = (ethPrice * ethAmount) / (10 ** 18);
         // the actual ETH/USD conversation rate, after adjusting the extra 0s.
         return ethAmountInUsd;
     }
