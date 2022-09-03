@@ -8,6 +8,8 @@ import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 
 contract Lottery is Ownable, VRFConsumerBaseV2 {
     address[] internal _players;
+    address internal _recent_winner;
+
     uint256 internal _entryFeeUsd;
     AggregatorV3Interface internal _ethUsbPriceFeed;
 
@@ -22,7 +24,7 @@ contract Lottery is Ownable, VRFConsumerBaseV2 {
     VRFCoordinatorV2Interface internal _coordinator;
     uint64 internal _subscription_id;
     bytes32 internal _keyhash;
-    uint32 internal _num_words =  2;
+    uint32 internal _num_words = 2;
     uint32 internal _callback_gas_limit;
     uint256 internal _request_id;
     uint16 internal _request_confirmations = 3;
@@ -42,6 +44,10 @@ contract Lottery is Ownable, VRFConsumerBaseV2 {
         _subscription_id = subscriptionId;
         _keyhash = keyhash;
         _callback_gas_limit = callback_gas_limit;
+    }
+
+    function recentWinner() public view returns(address) {
+        return _recent_winner;
     }
 
     function getLotteryState() public view returns(uint256) {
@@ -81,6 +87,12 @@ contract Lottery is Ownable, VRFConsumerBaseV2 {
     }
 
     function fulfillRandomWords(uint256, uint256[] memory randomWords) internal override {
-
+        require(_lottery_state == LOTTERY_STATE.CALCULATING_WINNER, "You aren't there yet");
+        require(randomWords.length > 0, "No randomness found");
+        uint256 winner_inx = randomWords[0] % _players.length;
+        _recent_winner = _players[winner_inx];
+        payable(_recent_winner).transfer(address(this).balance);
+        _players = new address[](0);
+        _lottery_state = LOTTERY_STATE.CLOSED;
     }
 }
