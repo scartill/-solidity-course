@@ -10,8 +10,7 @@ def deploy_fund_me():
     txn = {'from': account}
 
     fm = FundMe.deploy(
-        price_feed,
-        txn,
+        price_feed, txn,
         publish_source=config['networks'][net].get('verify')
     )
 

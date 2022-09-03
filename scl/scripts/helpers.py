@@ -3,7 +3,7 @@ from brownie import MockV3Aggregator
 
 
 LOCAL_BLOCKCHAIN_ENVS = ['development', 'ganache-local']
-FORKED_LOCAL_ENVS = ['mainnet-fork', 'mainnet-fork-dev']
+FORKED_LOCAL_ENVS = ['mainnet-fork']
 
 DECIMALS = 8
 STARTING_PRICE = 200000000000
