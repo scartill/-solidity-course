@@ -3,6 +3,7 @@ pragma solidity ^0.8.7;
 
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/LinkTokenInterface.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 
@@ -21,8 +22,10 @@ contract Lottery is Ownable, VRFConsumerBaseV2 {
 
     LOTTERY_STATE internal _lottery_state;
 
-    VRFCoordinatorV2Interface internal _coordinator;
-    uint64 internal _subscription_id;
+    LinkTokenInterface LINKTOKEN;
+
+    VRFCoordinatorV2Interface internal COORDINATOR;
+    uint64 internal _subscriptionId;
     bytes32 internal _keyhash;
     uint32 internal _num_words = 2;
     uint32 internal _callback_gas_limit;
@@ -31,19 +34,23 @@ contract Lottery is Ownable, VRFConsumerBaseV2 {
 
     constructor(
         address priceFeedAddress, 
-        address vrfCoordinator,
-        uint64 subscriptionId,
+        address linkTokenAddress,
+        address vrfCoordinatorAddress,
         bytes32 keyhash,
-        uint32 callback_gas_limit
-    ) VRFConsumerBaseV2(vrfCoordinator)  {
+        uint32 callbackGasLimit
+    ) VRFConsumerBaseV2(vrfCoordinatorAddress)  {
         _entryFeeUsd = 50 * (10**18);
         _ethUsbPriceFeed = AggregatorV3Interface(priceFeedAddress);
         _lottery_state = LOTTERY_STATE.CLOSED;
+        
+        LINKTOKEN = LinkTokenInterface(linkTokenAddress);
 
-        _coordinator = VRFCoordinatorV2Interface(vrfCoordinator);
-        _subscription_id = subscriptionId;
+        COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinatorAddress);
         _keyhash = keyhash;
-        _callback_gas_limit = callback_gas_limit;
+        _callback_gas_limit = callbackGasLimit;
+        createNewSubscription();
+
+        _recent_winner = 0x00000000000000000000000000000000DeaDBeef;
     }
 
     function recentWinner() public view returns(address) {
@@ -73,13 +80,17 @@ contract Lottery is Ownable, VRFConsumerBaseV2 {
         _lottery_state = LOTTERY_STATE.OPEN;
     }
 
+    function topUpSubscription(uint256 amount) external onlyOwner {
+        LINKTOKEN.transferAndCall(address(COORDINATOR), amount, abi.encode(_subscriptionId));
+    }
+
     function endLottery() onlyOwner public {
         require(_lottery_state == LOTTERY_STATE.OPEN, "Cannot close, not started");
         _lottery_state = LOTTERY_STATE.CALCULATING_WINNER;
         
-        _request_id = _coordinator.requestRandomWords(
+        _request_id = COORDINATOR.requestRandomWords(
             _keyhash,
-            _subscription_id,
+            _subscriptionId,
             _request_confirmations,
             _callback_gas_limit,
             _num_words
@@ -94,5 +105,19 @@ contract Lottery is Ownable, VRFConsumerBaseV2 {
         payable(_recent_winner).transfer(address(this).balance);
         _players = new address[](0);
         _lottery_state = LOTTERY_STATE.CLOSED;
+    }
+
+    function cancelSubscription(address receivingWallet) external onlyOwner {
+        COORDINATOR.cancelSubscription(_subscriptionId, receivingWallet);
+        _subscriptionId = 0;
+    }
+
+    function withdraw(uint256 amount, address to) external onlyOwner {
+        LINKTOKEN.transfer(to, amount);
+    }
+
+    function createNewSubscription() private onlyOwner {
+        _subscriptionId = COORDINATOR.createSubscription();
+        COORDINATOR.addConsumer(_subscriptionId, address(this));
     }
 }

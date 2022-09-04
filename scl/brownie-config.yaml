@@ -10,16 +10,20 @@ dotenv: .env
 wallets:
   from_key: ${PRIVATE_KEY}
 networks:
-  mainnet-fork:
-    eth_usd_price_feed:
-      address: '0x5f4ec3df9cbd43714fe2740f5e3616155c5b8419'
-
+  development:
+    vrf_coordinator:
+      gas_limit: 100000
+      keyhash: '0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15'
   goerli:
     eth_usd_price_feed:
       address: '0xD4a33860578De61DBAbDc8BFdb98FD742fA7028e'
     vrf_coordinator:
       address: '0x2Ca8E0C643bDe4C2E08ab1fA0da3401AdAD7734D'
-      subscription: 991
       gas_limit: 100000
       keyhash: '0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15'
-    verify: False
+    link_token:
+      address: '0x326C977E6efc84E512bB9C30f76E30c160eD06FB'
+    verify: True
+  mainnet-fork:
+    eth_usd_price_feed:
+      address: '0x5f4ec3df9cbd43714fe2740f5e3616155c5b8419'
