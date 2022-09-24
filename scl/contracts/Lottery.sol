@@ -27,10 +27,11 @@ contract Lottery is Ownable, VRFConsumerBaseV2 {
     VRFCoordinatorV2Interface internal COORDINATOR;
     uint64 internal _subscriptionId;
     bytes32 internal _keyhash;
-    uint32 internal _num_words = 2;
+    uint32 internal _num_words = 1;
     uint32 internal _callback_gas_limit;
     uint256 internal _request_id;
     uint16 internal _request_confirmations = 3;
+    event RequestedRandomness(uint256 requestId);
 
     constructor(
         address priceFeedAddress, 
@@ -51,6 +52,12 @@ contract Lottery is Ownable, VRFConsumerBaseV2 {
         createNewSubscription();
 
         _recent_winner = 0x00000000000000000000000000000000DeaDBeef;
+    }
+
+    function getPlayer(uint216 index) public view returns(address) {
+        require(index >= 0);
+        require(index < _players.length);
+        return _players[index];
     }
 
     function recentWinner() public view returns(address) {
@@ -95,6 +102,8 @@ contract Lottery is Ownable, VRFConsumerBaseV2 {
             _callback_gas_limit,
             _num_words
         );
+
+        emit RequestedRandomness(_request_id);
     }
 
     function fulfillRandomWords(uint256, uint256[] memory randomWords) internal override {

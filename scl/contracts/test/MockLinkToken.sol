@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "@chainlink/contracts/src/v0.8/interfaces/LinkTokenInterface.sol";
+import "contracts/test/VRFCoordinatorV2Mock.sol";
 
 contract MockLinkToken is LinkTokenInterface {
   function allowance(address owner, address spender) external view returns (uint256 remaining) {
@@ -49,7 +50,9 @@ contract MockLinkToken is LinkTokenInterface {
     uint256 value,
     bytes calldata data
   ) external returns (bool success) {
-    return true;
+    uint64 subId = abi.decode(data, (uint64));
+    VRFCoordinatorV2Mock coordinator = VRFCoordinatorV2Mock(to);
+    coordinator.fundSubscription(subId, uint96(value));
   }
 
   function transferFrom(

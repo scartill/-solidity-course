@@ -1,4 +1,4 @@
-from brownie import accounts, config, network, Contract, interface
+from brownie import accounts, config, network, interface
 from brownie import MockV3Aggregator, VRFCoordinatorV2Mock, MockLinkToken
 
 

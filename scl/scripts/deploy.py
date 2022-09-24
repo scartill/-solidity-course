@@ -20,6 +20,7 @@ def deploy_lottery():
     )
 
     print(f'Deployed lottery of {lottery}')
+    return lottery
 
 
 def start_lottery():
@@ -56,8 +57,9 @@ def end_lottery():
     winner = lottery.recentWinner()
     print(f'Winner is {winner}')
 
-    print('Waiting for the oracle to respond')
-    time.sleep(60)
+    for _ in range(12):
+        print('Waiting for the oracle to respond')
+        time.sleep(10)
 
     state = lottery.getLotteryState()
     print(f'State {state}')
