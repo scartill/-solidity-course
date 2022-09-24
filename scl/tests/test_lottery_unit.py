@@ -65,8 +65,8 @@ def test_can_pick_winner():
     other_acc_2 = h.get_account(index=2)
     lottery.enter({'from': other_acc_2, 'value': fee})
 
-    h.fund_with_link(lottery.address)
-    lottery.topUpSubscription(5 * 10 ** 16, h.my())
+    h.fund_with_link(lottery.address, amount=6 * 10 ** 18)
+    lottery.topUpSubscription(5 * 10 ** 18, h.my())
 
     starting_winner_balance = account.balance()
     lottery_balance = lottery.balance()

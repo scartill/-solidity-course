@@ -18,8 +18,13 @@ def deploy_lottery():
         h.my(),
         publish_source=h.netconfig().get('verify', False)
     )
-
     print(f'Deployed lottery of {lottery}')
+
+    tx = lottery.createNewSubscription(h.my())
+    tx.wait(1)
+    subID = tx.events['SubscriptionCreated']['subscriptionId']
+    print(f'Created subscription {subID}')
+
     return lottery
 
 
@@ -41,15 +46,17 @@ def end_lottery():
     lottery = Lottery[-1]
 
     # Fund the contract with 0.1 LINK
-    h.fund_with_link(lottery.address)
+    h.fund_with_link(lottery.address, amount=6 * 10 ** 18)
 
     # Fund the oracle
-    tx = lottery.topUpSubscription(5 * 10 ** 16, h.my())
+    tx = lottery.topUpSubscription(5 * 10 ** 18, h.my())
     tx.wait(1)
 
     # Do end lottery
     tx = lottery.endLottery(h.my())
     tx.wait(1)
+    requestId = tx.events['RequestedRandomness']['requestId']
+    print('Request ID', requestId)
 
     state = lottery.getLotteryState()
     print(f'State {state}')
@@ -57,8 +64,8 @@ def end_lottery():
     winner = lottery.recentWinner()
     print(f'Winner is {winner}')
 
-    for _ in range(12):
-        print('Waiting for the oracle to respond')
+    for i in range(60):
+        print(f'Waiting for the oracle to respond {i}')
         time.sleep(10)
 
     state = lottery.getLotteryState()
@@ -66,6 +73,11 @@ def end_lottery():
 
     winner = lottery.recentWinner()
     print(f'Winner is {winner}')
+
+    tx = lottery.withdraw(h.get_account())
+    tx.wait(1)
+    residual = tx.events['TokensReturned']['residual']
+    print(f'Returned {residual} link tokens')
 
 
 def main():

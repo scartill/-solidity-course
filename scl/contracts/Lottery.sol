@@ -31,7 +31,10 @@ contract Lottery is Ownable, VRFConsumerBaseV2 {
     uint32 internal _callback_gas_limit;
     uint256 internal _request_id;
     uint16 internal _request_confirmations = 3;
+    
+    event SubscriptionCreated(uint64 subscriptionId);
     event RequestedRandomness(uint256 requestId);
+    event TokensReturned(uint256 residual);
 
     constructor(
         address priceFeedAddress, 
@@ -40,7 +43,7 @@ contract Lottery is Ownable, VRFConsumerBaseV2 {
         bytes32 keyhash,
         uint32 callbackGasLimit
     ) VRFConsumerBaseV2(vrfCoordinatorAddress)  {
-        _entryFeeUsd = 50 * (10**18);
+        _entryFeeUsd = 0.5 * (10**18);
         _ethUsbPriceFeed = AggregatorV3Interface(priceFeedAddress);
         _lottery_state = LOTTERY_STATE.CLOSED;
         
@@ -49,7 +52,6 @@ contract Lottery is Ownable, VRFConsumerBaseV2 {
         COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinatorAddress);
         _keyhash = keyhash;
         _callback_gas_limit = callbackGasLimit;
-        createNewSubscription();
 
         _recent_winner = 0x00000000000000000000000000000000DeaDBeef;
     }
@@ -121,12 +123,17 @@ contract Lottery is Ownable, VRFConsumerBaseV2 {
         _subscriptionId = 0;
     }
 
-    function withdraw(uint256 amount, address to) external onlyOwner {
-        LINKTOKEN.transfer(to, amount);
+    function withdraw(address to) external onlyOwner {
+        uint256 link_balance = LINKTOKEN.balanceOf(address(this));
+        LINKTOKEN.transfer(to, link_balance);
+
+        emit TokensReturned(link_balance);
     }
 
-    function createNewSubscription() private onlyOwner {
+    function createNewSubscription() public onlyOwner {
         _subscriptionId = COORDINATOR.createSubscription();
         COORDINATOR.addConsumer(_subscriptionId, address(this));
+
+        emit SubscriptionCreated(_subscriptionId);
     }
 }
