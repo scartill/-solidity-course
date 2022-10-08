@@ -1,0 +1,11 @@
+{
+    "name": "PUG",
+    "description": "An adorable PUG pup!",
+    "image": "https://s3.eu-north-1.amazonaws.com/public.adsight/admedia/Pug-Transparent-File.png",
+    "attributes": [
+        {
+            "trait_type": "cuteness",
+            "value": 50
+        }
+    ]
+}

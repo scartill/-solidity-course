@@ -1,0 +1,20 @@
+dependencies:
+  - OpenZeppelin/openzeppelin-contracts@4.7.3
+compiler:
+  solc:
+    remappings:
+      - '@openzeppelin=OpenZeppelin/openzeppelin-contracts@4.7.3'
+dotenv: .env
+wallets:
+  from_key: ${PRIVATE_KEY}
+networks:
+  default: goerli
+  goerli:
+    weth:
+      pool: '0x368eedf3f56ad10b9bc57eed4dac65b26bb667f6'
+      gateway: '0xd5B55D3Ed89FDa19124ceB5baB620328287b915d'
+      token: '0x27B4692C93959048833f40702b22FE3578E77759'
+    verify: True
+  mainnet-fork:
+    weth:
+      gateway: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
